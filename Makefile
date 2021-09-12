@@ -17,6 +17,10 @@ help:
 lint: ## Lint Go source code.
 lint: .linted
 
+vendor: ## Update vendored Go source code.
+vendor: go.mod go.sum
+	go mod tidy && go mod vendor
+
 result/bin/fit: ## Build the fit binary using Nix.
-result/bin/fit: default.nix flake.nix lint
+result/bin/fit: vendor default.nix flake.nix lint
 	nix build .
