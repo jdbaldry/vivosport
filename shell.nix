@@ -11,6 +11,7 @@ mkShell {
     golangci-lint
     gopkgs
     gopls
+    sqlc
   ];
   shellHook = ''
     # ...
