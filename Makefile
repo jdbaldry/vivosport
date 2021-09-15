@@ -24,3 +24,7 @@ vendor: go.mod go.sum
 result/bin/fit: ## Build the fit binary using Nix.
 result/bin/fit: vendor default.nix flake.nix lint
 	nix build .
+
+pgsql: ## Generate database code.
+pgsql: sqlc.json query.sql schema.sql
+	sqlc generate
