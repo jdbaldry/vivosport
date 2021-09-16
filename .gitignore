@@ -1,3 +1,4 @@
 /.linted
 /data/
 /result
+*.linted

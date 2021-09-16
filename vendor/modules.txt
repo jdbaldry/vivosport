@@ -8,6 +8,11 @@ github.com/gordonklaus/ineffassign
 # github.com/kisielk/errcheck v1.2.0
 github.com/kisielk/errcheck
 github.com/kisielk/errcheck/internal/errcheck
+# github.com/lib/pq v1.10.3
+## explicit
+github.com/lib/pq
+github.com/lib/pq/oid
+github.com/lib/pq/scram
 # github.com/mdempsky/unconvert v0.0.0-20190325185700-2f5dc3378ed3
 github.com/mdempsky/unconvert
 # github.com/tormoder/fit v0.10.0

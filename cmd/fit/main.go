@@ -40,7 +40,10 @@ func main() {
 
 	sessions := []*fit.SessionMsg{}
 	activitiesDir := filepath.Join(dir, "ACTIVITY")
-	filepath.WalkDir(activitiesDir, func(path string, d fs.DirEntry, err error) error {
+	err = filepath.WalkDir(activitiesDir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
 		if path == activitiesDir {
 			return nil
 		}
@@ -66,6 +69,10 @@ func main() {
 		sessions = append(sessions, activity.Sessions...)
 		return nil
 	})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Trouble walking directories: %v", err)
+		os.Exit(1)
+	}
 
 	sort.Slice(sessions, func(p, q int) bool {
 		return sessions[p].Timestamp.Unix() > sessions[q].Timestamp.Unix()

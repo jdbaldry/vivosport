@@ -2,7 +2,7 @@
 
 with pkgs;
 buildGoModule {
-  pname = "fit";
+  pname = "vivosport";
   version = "0.0.1";
 
   meta = with lib; {
