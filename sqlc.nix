@@ -6,6 +6,7 @@ buildGoModule rec {
   version = "1.10.0";
 
   buildInputs = [ xxHash ];
+  doCheck = false;
   meta = with lib; {
     maintainers = with maintainers; [ jdbaldry ];
   };
