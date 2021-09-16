@@ -1,0 +1,38 @@
+{
+   "services": {
+      "grafana": {
+         "entrypoint": [
+            "sh",
+            "-euc",
+            "printf \"\"apiVersion\": 1\n\"providers\":\n- \"allowUiUpdates\": true\n  \"name\": \"vivosport\"\n  \"options\":\n    \"path\": \"/var/lib/grafana/dashboards\"\n  \"updateIntervalSeconds\": 1\" > /etc/grafana/provisioning/dashboards/vivosport.yml\nprintf \"\"apiVersion\": 1\n\"datasources\":\n- \"database\": \"vivosport\"\n  \"isDefault\": true\n  \"jsonData\":\n    \"sslmode\": \"disable\"\n  \"name\": \"vivosport\"\n  \"secureJsonData\":\n    \"password\": \"vivosport\"\n  \"type\": \"postgres\"\n  \"url\": \"postgres\"\n  \"user\": \"vivosport\"\" > /etc/grafana/provisioning/datasources/vivosport.yml\nexec /run.sh\n"
+         ],
+         "environment": [
+            "GF_AUTH_ANONYMOUS_ENABLED=true",
+            "GF_AUTH_ANONYMOUS_ORG_ROLE=Admin"
+         ],
+         "image": "grafana/grafana:7.3.3",
+         "ports": [
+            "${GRAFANA_PORT:-3000}:3000"
+         ],
+         "volumes": [
+            "./dashboards:/var/lib/grafana/dashboards"
+         ]
+      },
+      "postgres": {
+         "environment": {
+            "POSTGRES_DB": "vivosport",
+            "POSTGRES_PASSWORD": "vivosport",
+            "POSTGRES_USER": "vivosport"
+         },
+         "image": "postgres",
+         "ports": [
+            "${POSTGRES_PORT:-5432}:5432"
+         ],
+         "restart": "always",
+         "volumes": [
+            "./pgdata:/var/lib/postgresql/data:z"
+         ]
+      }
+   },
+   "version": "3.1"
+}

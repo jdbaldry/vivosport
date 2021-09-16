@@ -2,6 +2,7 @@
 with pkgs;
 mkShell {
   buildInputs = [
+    docker-compose
     gnumake
   ] ++ [
     go-outline

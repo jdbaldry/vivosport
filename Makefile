@@ -28,3 +28,7 @@ result/bin/vivosport: vendor default.nix flake.nix lint
 pgsql: ## Generate database code.
 pgsql: sqlc.json query.sql schema.sql
 	sqlc generate
+
+docker-compose.yml: ## Generate the docker-compose from Jsonnet.
+docker-compose.yml: docker-compose.jsonnet
+	jsonnet $< > $@
