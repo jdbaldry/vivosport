@@ -11,22 +11,23 @@ help: ## Display this help
 help:
 	@awk 'BEGIN {FS = ": ##"; printf "Usage:\n  make <target>\n\nTargets:\n"} /^[a-zA-Z0-9_\.\-\/%]+: ##/ { printf "  %-45s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
-%/.linted: %
-	if golangci-lint run ./$<; then touch $@; fi
+cmd/db/main.go: $(wildcard pgsql/*.go)
+	touch $@
 
-lint: ## Lint Go source code.
-lint: cmd/fit/.linted cmd/db/.linted
+%/.linted: ## Lint source code.
+%/.linted: %/main.go
+	if golangci-lint run ./$<; then touch $@; fi
 
 vendor: ## Update vendored Go source code.
 vendor: go.mod go.sum
 	go mod tidy && go mod vendor
 
-result/bin/vivosport: ## Build binaries using Nix.
-result/bin/vivosport: vendor default.nix flake.nix lint
-	nix build .
+.built: ## Build binaries using Nix.
+.built: vendor default.nix flake.nix cmd/fit/.linted cmd/db/.linted
+	if nix build .; then touch $@; fi
 
-pgsql: ## Generate database code.
-pgsql: sqlc.json query.sql schema.sql
+pgsql/db.go pgsql/models.go pgsql/query.sql.go: ## Generate database code.
+pgsql/db.go pgsql/models.go pgsql/query.sql.go: sqlc.json query.sql schema.sql
 	sqlc generate
 
 docker-compose.yml: ## Generate the docker-compose from Jsonnet.
