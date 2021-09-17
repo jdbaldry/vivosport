@@ -15,7 +15,7 @@
         POSTGRES_USER: user,
       },
       ports: ['${POSTGRES_PORT:-5432}:5432'],
-      volumes: ['./pgdata:/var/lib/postgresql/data:z'],
+      volumes: ['/home/jdb/pgdata:/var/lib/postgresql/data:z'],
     },
     grafana: {
       image: 'grafana/grafana:7.3.3',
@@ -58,12 +58,17 @@
             exec /run.sh
           ||| % std.map(std.manifestYamlDoc, [dashboards, dataSources]),
         ],
+      depends_on: [db],
       environment: [
         'GF_AUTH_ANONYMOUS_ENABLED=true',
         'GF_AUTH_ANONYMOUS_ORG_ROLE=Admin',
+        'GF_DATABASE_TYPE=' + db,
+        'GF_DATABASE_HOST=' + db,
+        'GF_DATABASE_USER=' + user,
+        'GF_DATABASE_PASSWORD=' + password,
+        'GF_DATABASE_SSL_MODE=disable',
       ],
       ports: ['${GRAFANA_PORT:-3000}:3000'],
-      volumes: ['./dashboards:/var/lib/grafana/dashboards'],
     },
   },
 }
