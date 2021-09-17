@@ -33,3 +33,10 @@ pgsql/db.go pgsql/models.go pgsql/query.sql.go: sqlc.json query.sql schema.sql
 docker-compose.yml: ## Generate the docker-compose from Jsonnet.
 docker-compose.yml: docker-compose.jsonnet
 	jsonnet $< > $@
+
+VIVOSPORT_DEV ?= /dev/disk/by-label/GARMIN
+.PHONY: data
+data: ## Rsync data from the vivosport device.
+data:
+	sudo mount $(VIVOSPORT_DEV) /tmp/garmin
+	rsync -avz /tmp/garmin/GARMIN/* $@
