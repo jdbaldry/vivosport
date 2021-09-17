@@ -6,29 +6,42 @@ package pgsql
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 const createActivity = `-- name: CreateActivity :one
-INSERT INTO activities (ts, total_timer_time, num_sessions, type, event, event_type, local_ts, event_group)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING
-    id, ts, total_timer_time, num_sessions, type, event, event_type, local_ts, event_group
+INSERT INTO activities (
+    start_ts,
+    end_ts,
+    total_timer_time,
+    num_sessions,
+    type,
+    event,
+    event_type,
+    local_ts,
+    event_group
+)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+ON CONFLICT DO NOTHING
+RETURNING id, start_ts, end_ts, total_timer_time, num_sessions, type, event, event_type, local_ts, event_group
 `
 
 type CreateActivityParams struct {
-	Ts             sql.NullTime
+	StartTs        time.Time
+	EndTs          time.Time
 	TotalTimerTime sql.NullInt32
 	NumSessions    sql.NullInt32
 	Type           sql.NullInt32
-	Event          sql.NullInt32
-	EventType      sql.NullInt32
+	Event          int16
+	EventType      int16
 	LocalTs        sql.NullTime
-	EventGroup     sql.NullInt32
+	EventGroup     int16
 }
 
 func (q *Queries) CreateActivity(ctx context.Context, arg CreateActivityParams) (Activity, error) {
 	row := q.db.QueryRowContext(ctx, createActivity,
-		arg.Ts,
+		arg.StartTs,
+		arg.EndTs,
 		arg.TotalTimerTime,
 		arg.NumSessions,
 		arg.Type,
@@ -40,7 +53,8 @@ func (q *Queries) CreateActivity(ctx context.Context, arg CreateActivityParams) 
 	var i Activity
 	err := row.Scan(
 		&i.ID,
-		&i.Ts,
+		&i.StartTs,
+		&i.EndTs,
 		&i.TotalTimerTime,
 		&i.NumSessions,
 		&i.Type,

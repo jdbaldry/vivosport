@@ -4,16 +4,18 @@ package pgsql
 
 import (
 	"database/sql"
+	"time"
 )
 
 type Activity struct {
-	ID             int64
-	Ts             sql.NullTime
+	ID             sql.NullInt64
+	StartTs        time.Time
+	EndTs          time.Time
 	TotalTimerTime sql.NullInt32
 	NumSessions    sql.NullInt32
 	Type           sql.NullInt32
-	Event          sql.NullInt32
-	EventType      sql.NullInt32
+	Event          int16
+	EventType      int16
 	LocalTs        sql.NullTime
-	EventGroup     sql.NullInt32
+	EventGroup     int16
 }

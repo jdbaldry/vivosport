@@ -12,7 +12,7 @@ mkShell {
     golangci-lint
     gopkgs
     gopls
-    pgformatter
+    postgresql
     sqlc
   ];
   shellHook = ''
