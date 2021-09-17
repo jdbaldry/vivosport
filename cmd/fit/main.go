@@ -70,7 +70,7 @@ func main() {
 		return nil
 	})
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Trouble walking directories: %v", err)
+		fmt.Fprintf(os.Stderr, "Trouble walking directories: %v\n", err)
 		os.Exit(1)
 	}
 
