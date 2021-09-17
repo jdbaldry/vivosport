@@ -16,6 +16,6 @@ mkShell {
     sqlc
   ];
   shellHook = ''
-    # ...
+    export PATH="$PATH:$(pwd)/result/bin"
   '';
 }

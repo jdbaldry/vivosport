@@ -65,3 +65,80 @@ func (q *Queries) CreateActivity(ctx context.Context, arg CreateActivityParams) 
 	)
 	return i, err
 }
+
+const createSession = `-- name: CreateSession :one
+INSERT INTO sessions (
+    start_ts,
+    end_ts,
+    event,
+    event_type,
+    sport,
+    sub_sport,
+    total_elapsed_time,
+    total_timer_time,
+    total_distance,
+    total_calories,
+    avg_speed,
+    max_speed,
+    avg_heart_rate,
+    max_heart_rate
+)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+ON CONFLICT DO NOTHING
+RETURNING id, start_ts, end_ts, event, event_type, sport, sub_sport, total_elapsed_time, total_timer_time, total_distance, total_calories, avg_speed, max_speed, avg_heart_rate, max_heart_rate
+`
+
+type CreateSessionParams struct {
+	StartTs          time.Time
+	EndTs            time.Time
+	Event            int16
+	EventType        int16
+	Sport            int16
+	SubSport         int16
+	TotalElapsedTime sql.NullInt32
+	TotalTimerTime   sql.NullInt32
+	TotalDistance    sql.NullInt32
+	TotalCalories    int16
+	AvgSpeed         int16
+	MaxSpeed         int16
+	AvgHeartRate     int16
+	MaxHeartRate     int16
+}
+
+func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error) {
+	row := q.db.QueryRowContext(ctx, createSession,
+		arg.StartTs,
+		arg.EndTs,
+		arg.Event,
+		arg.EventType,
+		arg.Sport,
+		arg.SubSport,
+		arg.TotalElapsedTime,
+		arg.TotalTimerTime,
+		arg.TotalDistance,
+		arg.TotalCalories,
+		arg.AvgSpeed,
+		arg.MaxSpeed,
+		arg.AvgHeartRate,
+		arg.MaxHeartRate,
+	)
+	var i Session
+	err := row.Scan(
+		&i.ID,
+		&i.StartTs,
+		&i.EndTs,
+		&i.Event,
+		&i.EventType,
+		&i.Sport,
+		&i.SubSport,
+		&i.TotalElapsedTime,
+		&i.TotalTimerTime,
+		&i.TotalDistance,
+		&i.TotalCalories,
+		&i.AvgSpeed,
+		&i.MaxSpeed,
+		&i.AvgHeartRate,
+		&i.MaxHeartRate,
+	)
+	return i, err
+}

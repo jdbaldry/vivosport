@@ -95,6 +95,34 @@ func main() {
 		}
 		fmt.Printf("Created activity: %#v\n", inserted)
 
+		for _, session := range activityFile.Sessions {
+			inserted, err := queries.CreateSession(ctx, pgsql.CreateSessionParams{
+				StartTs:   session.StartTime,
+				EndTs:     session.Timestamp,
+				Event:     int16(session.Event),
+				EventType: int16(session.EventType),
+				Sport:     int16(session.Sport),
+				SubSport:  int16(session.SubSport),
+				// TODO(jdb): These scaled values need to be stored without scaling or as floats in the database because precision is lost.
+				TotalElapsedTime: sql.NullInt32{Int32: int32(session.GetTotalElapsedTimeScaled()), Valid: true},
+				TotalTimerTime:   sql.NullInt32{Int32: int32(session.GetTotalTimerTimeScaled()), Valid: true},
+				TotalDistance:    sql.NullInt32{Int32: int32(session.GetTotalDistanceScaled()), Valid: true},
+				TotalCalories:    int16(session.TotalCalories),
+				AvgSpeed:         int16(session.GetAvgSpeedScaled()),
+				MaxSpeed:         int16(session.GetMaxSpeedScaled()),
+				AvgHeartRate:     int16(session.AvgHeartRate),
+				MaxHeartRate:     int16(session.MaxHeartRate),
+			})
+			if err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					return nil
+				}
+				return fmt.Errorf("failed to create session: %w\n", err)
+			}
+			fmt.Printf("Created session: %#v\n", inserted)
+
+		}
+
 		return nil
 	})
 	if err != nil {

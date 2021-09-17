@@ -19,3 +19,21 @@ type Activity struct {
 	LocalTs        sql.NullTime
 	EventGroup     int16
 }
+
+type Session struct {
+	ID               sql.NullInt64
+	StartTs          time.Time
+	EndTs            time.Time
+	Event            int16
+	EventType        int16
+	Sport            int16
+	SubSport         int16
+	TotalElapsedTime sql.NullInt32
+	TotalTimerTime   sql.NullInt32
+	TotalDistance    sql.NullInt32
+	TotalCalories    int16
+	AvgSpeed         int16
+	MaxSpeed         int16
+	AvgHeartRate     int16
+	MaxHeartRate     int16
+}
