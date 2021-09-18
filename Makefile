@@ -23,7 +23,7 @@ vendor: go.mod go.sum
 	go mod tidy && go mod vendor
 
 .built: ## Build binaries using Nix.
-.built: vendor default.nix flake.nix cmd/fit/.linted cmd/db/.linted
+.built: vendor default.nix flake.nix cmd/fit/.linted cmd/db/.linted cmd/files/.linted
 	if nix build .; then touch $@; fi
 
 pgsql/db.go pgsql/models.go pgsql/query.sql.go: ## Generate database code.
