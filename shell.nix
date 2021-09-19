@@ -4,6 +4,7 @@ mkShell {
   buildInputs = [
     docker-compose
     fitgen
+    libreoffice
     gnumake
     postgresql
     sqlc

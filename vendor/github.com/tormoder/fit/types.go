@@ -1401,10 +1401,13 @@ const (
 	FileTypeMonitoringA      FileType = 15 // Read only. Directory=Monitoring. File number=sub type.
 	FileTypeActivitySummary  FileType = 20 // Read/erase, multiple files. Directory=Activities
 	FileTypeMonitoringDaily  FileType = 28
+	FileTypeRecords          FileType = 29   // Read/write, single file. Directory=Records
 	FileTypeMonitoringB      FileType = 32   // Read only. Directory=Monitoring. File number=identifier
 	FileTypeSegment          FileType = 34   // Read/write/erase. Multiple Files.  Directory=Segments
 	FileTypeSegmentList      FileType = 35   // Read/write/erase. Single File.  Directory=Segments
 	FileTypeExdConfiguration FileType = 40   // Read/write/erase. Single File. Directory=Settings
+	FileTypeMetrics          FileType = 44   // Read/write, multiple files. Directory=Metrics
+	FileTypeSleep            FileType = 49   // Read/write, multiple files. Directory=Sleep
 	FileTypeMfgRangeMin      FileType = 0xF7 // 0xF7 - 0xFE reserved for manufacturer specific file types
 	FileTypeMfgRangeMax      FileType = 0xFE // 0xF7 - 0xFE reserved for manufacturer specific file types
 	FileTypeInvalid          FileType = 0xFF
