@@ -46,3 +46,10 @@ CREATE TABLE monitorings (
   local_ts timestamp,
   PRIMARY KEY (ts, activity_type, activity_sub_type)
 );
+
+-- [[file:csv/RECORDS/RECORDS.md::Records][Records]]
+CREATE TABLE records (
+  id bigserial PRIMARY KEY,
+  distance integer,
+  time integer
+);

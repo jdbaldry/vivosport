@@ -32,6 +32,12 @@ type Monitoring struct {
 	LocalTs         sql.NullTime
 }
 
+type Record struct {
+	ID       int64
+	Distance sql.NullInt32
+	Time     sql.NullInt32
+}
+
 type Session struct {
 	ID               sql.NullInt64
 	StartTs          time.Time

@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"encoding/csv"
 	"errors"
 	"fmt"
 	"io"
@@ -12,6 +13,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/jdbaldry/vivosport/pgsql"
@@ -28,18 +30,18 @@ func help(w io.Writer) {
 	fmt.Fprintf(w, `Updates a local postgres database with FIT file data.
 
 Usage:
-  %s <vivosport data directory>
+  %s <vivosport data directory> <csv data directory>
 `, os.Args[0])
 }
 
 func main() {
-	if len(os.Args) != 2 {
+	if len(os.Args) != 3 {
 		help(os.Stderr)
 		os.Exit(1)
 	}
 
-	var sessionCount, monitoringCount, activityCount int
-	var sessionInserted, monitoringInserted, activityInserted int
+	var activityCount, monitoringCount, recordCount, sessionCount int
+	var activityInserted, monitoringInserted, recordInserted, sessionInserted int
 
 	ctx := context.Background()
 
@@ -51,13 +53,64 @@ func main() {
 
 	queries := pgsql.New(db)
 
-	dir, err := filepath.Abs(os.Args[1])
+	fitDir, err := filepath.Abs(os.Args[1])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to determine path to vivosport data: %v\n", err)
 		os.Exit(1)
 	}
 
-	monitoringDir := filepath.Join(dir, "MONITOR")
+	csvDir, err := filepath.Abs(os.Args[2])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to determine path to csv data: %v\n", err)
+		os.Exit(1)
+	}
+
+	path := filepath.Join(csvDir, "RECORDS", "RECORDS.csv")
+	f, err := os.Open(path)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to open file %s: %v", path, err)
+		os.Exit(1)
+	}
+	r := csv.NewReader(f)
+	r.FieldsPerRecord = -1 // Records have variable length fields
+	records, err := r.ReadAll()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to read file %s as CSV: %v", path, err)
+		os.Exit(1)
+	}
+	for i, record := range records {
+		if len(record) >= 17 {
+			// 7th field is distance. [[file:~/ext/jdbaldry/vivosport/csv/RECORDS/RECORDS.md::Records][Records]]
+			if record[7] == "100000" || record[7] == "160900" || record[7] == "500000" {
+				recordCount++
+				distance, err := strconv.ParseInt(record[7], 10, 32)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Unable to convert CSV distance field in record %d to int: %v", i, err)
+					os.Exit(1)
+				}
+				time, err := strconv.ParseInt(record[16], 10, 32)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Unable to convert CSV time field in record %d to int: %v", i, err)
+					os.Exit(1)
+				}
+
+				_, err = queries.CreateRecord(ctx, pgsql.CreateRecordParams{
+					Distance: sql.NullInt32{Int32: int32(distance), Valid: true},
+					Time:     sql.NullInt32{Int32: int32(time), Valid: true},
+				})
+
+				if err != nil {
+					if !errors.Is(err, sql.ErrNoRows) {
+						fmt.Fprintf(os.Stderr, "failed to create record: %v\n", err)
+						os.Exit(1)
+					}
+				}
+				recordInserted++
+			}
+		}
+	}
+
+	monitoringDir := filepath.Join(fitDir, "MONITOR")
 	err = filepath.WalkDir(monitoringDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -107,7 +160,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	activitiesDir := filepath.Join(dir, "ACTIVITY")
+	activitiesDir := filepath.Join(fitDir, "ACTIVITY")
 	err = filepath.WalkDir(activitiesDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -181,9 +234,10 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Trouble walking directories: %v\n", err)
 		os.Exit(1)
 	}
+
 	fmt.Println("type\tcount\tinserted")
 	fmt.Printf("%s\t%d\t%d\n", "activity", activityCount, activityInserted)
 	fmt.Printf("%s\t%d\t%d\n", "monitoring", monitoringCount, monitoringInserted)
+	fmt.Printf("%s\t%d\t%d\n", "record", recordCount, recordInserted)
 	fmt.Printf("%s\t%d\t%d\n", "session", sessionCount, sessionInserted)
-
 }

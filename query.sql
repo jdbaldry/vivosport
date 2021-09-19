@@ -49,3 +49,9 @@ INSERT INTO monitorings (
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 ON CONFLICT DO NOTHING
 RETURNING *;
+
+-- name: CreateRecord :one
+INSERT INTO records (distance, time)
+VALUES ($1, $2)
+ON CONFLICT DO NOTHING
+RETURNING *;

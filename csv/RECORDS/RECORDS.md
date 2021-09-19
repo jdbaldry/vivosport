@@ -9,8 +9,9 @@ Data,2,unknown,unknown,"1000886426",,unknown,"160900",,unknown,"160100",,unknown
 Data,2,unknown,unknown,"1000886425",,unknown,"500000",,unknown,"498000",,unknown,"507900",,unknown,"1528180",,unknown,"2",,unknown,"2",,unknown,"0",,unknown,"1",,,,,
 ```
 
-The distance is represented by the `Value 2` field, above these are "10000", "160900", and "50000". Although the units are omitted, it appears they are in meters.
+The distance is represented by the `Value 2` field, above these are "10000", "160900", and "50000". Although the units are omitted, it appears they are in centimeters.
 
-The time is represented by the `Value 5` field, above these are "270036", "451672", and "1528180". Again, units are omitted but they are in microseconds.
+The time is represented by the `Value 5` field, above these are "270036", "451672", and "1528180". Again, units are omitted but they are in milliseconds.
 
-Values in `Value 3` and `Value 4` fields appear to be upper and lower bounds for the distance, also in meters.
+Values in `Value 3` and `Value 4` fields appear to be upper and lower bounds for the distance, also in centib
+meters.

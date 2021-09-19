@@ -119,6 +119,25 @@ func (q *Queries) CreateMonitoring(ctx context.Context, arg CreateMonitoringPara
 	return i, err
 }
 
+const createRecord = `-- name: CreateRecord :one
+INSERT INTO records (distance, time)
+VALUES ($1, $2)
+ON CONFLICT DO NOTHING
+RETURNING id, distance, time
+`
+
+type CreateRecordParams struct {
+	Distance sql.NullInt32
+	Time     sql.NullInt32
+}
+
+func (q *Queries) CreateRecord(ctx context.Context, arg CreateRecordParams) (Record, error) {
+	row := q.db.QueryRowContext(ctx, createRecord, arg.Distance, arg.Time)
+	var i Record
+	err := row.Scan(&i.ID, &i.Distance, &i.Time)
+	return i, err
+}
+
 const createSession = `-- name: CreateSession :one
 INSERT INTO sessions (
     start_ts,
