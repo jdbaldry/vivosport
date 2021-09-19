@@ -3,3 +3,5 @@
 /result
 *.linted
 /.built
+/sdk.zip
+/sdk/

@@ -41,3 +41,17 @@ data: ## Rsync data from the vivosport device.
 data:
 	sudo mount $(VIVOSPORT_DEV) /tmp/garmin
 	rsync -avz /tmp/garmin/GARMIN/* $@
+
+
+SDK_VERSION ?= 21.60
+sdk.zip:
+	curl -Lo sdk.zip https://developer.garmin.com/downloads/fit/sdk/FitSDKRelease_$(SDK_VERSION).00.zip
+
+sdk: ## Fetch and extract the Garmin SDK.
+sdk: sdk.zip
+	unzip $< -d $@
+
+csv/%.csv: ## Convert a FIT file to CSV.
+csv/%.csv: data/%.FIT sdk
+	mkdir -p $(@D)
+	java -jar sdk/java/FitCSVTool.jar -b $< $@
