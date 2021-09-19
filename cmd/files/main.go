@@ -44,11 +44,29 @@ func main() {
 		if d.IsDir() {
 			fmt.Printf("DIR\t%s\n", path)
 			if d.Name() == "METRICS" || d.Name() == "RECORDS" || d.Name() == "SLEEP" {
-				fmt.Fprintf(os.Stderr, "Skipping directory %s because the FIT files are not recognized\n", d.Name())
+				err := filepath.WalkDir(filepath.Join(os.Args[1], d.Name()), func(path string, d fs.DirEntry, err error) error {
+					if strings.HasSuffix(d.Name(), ".FIT") {
+						b, err := ioutil.ReadFile(path)
+						if err != nil {
+							return fmt.Errorf("unable to read file %s: %w\n", path, err)
+						}
+
+						_, err = fit.Decode(bytes.NewReader(b))
+						if err != nil {
+							fmt.Fprintf(os.Stderr, "Unable to decode FIT data from file %s: %v\n", path, err)
+						}
+					}
+					return nil
+				})
+				if err != nil {
+					return err
+				}
 				return filepath.SkipDir
 			}
+
 			return nil
 		}
+
 		if strings.HasSuffix(d.Name(), ".FIT") {
 			b, err := ioutil.ReadFile(path)
 			if err != nil {
