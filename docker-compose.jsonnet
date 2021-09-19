@@ -21,16 +21,7 @@
       image: 'grafana/grafana:7.3.3',
 
       entrypoint:
-        local dashboards = {
-          apiVersion: 1,
-          providers: [{
-            name: 'vivosport',
 
-            allowUiUpdates: true,
-            options: { path: '/var/lib/grafana/dashboards' },
-            updateIntervalSeconds: 1,
-          }],
-        };
         local dataSources = {
           apiVersion: 1,
           datasources: [{
@@ -53,10 +44,9 @@
           'sh',
           '-euc',
           |||
-            printf "%s" > /etc/grafana/provisioning/dashboards/vivosport.yml
             printf "%s" > /etc/grafana/provisioning/datasources/vivosport.yml
             exec /run.sh
-          ||| % std.map(std.manifestYamlDoc, [dashboards, dataSources]),
+          ||| % std.manifestYamlDoc(dataSources),
         ],
       depends_on: [db],
       environment: [

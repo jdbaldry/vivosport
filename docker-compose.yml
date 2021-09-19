@@ -7,7 +7,7 @@
          "entrypoint": [
             "sh",
             "-euc",
-            "printf \"\"apiVersion\": 1\n\"providers\":\n- \"allowUiUpdates\": true\n  \"name\": \"vivosport\"\n  \"options\":\n    \"path\": \"/var/lib/grafana/dashboards\"\n  \"updateIntervalSeconds\": 1\" > /etc/grafana/provisioning/dashboards/vivosport.yml\nprintf \"\"apiVersion\": 1\n\"datasources\":\n- \"database\": \"vivosport\"\n  \"isDefault\": true\n  \"jsonData\":\n    \"sslmode\": \"disable\"\n  \"name\": \"vivosport\"\n  \"secureJsonData\":\n    \"password\": \"vivosport\"\n  \"type\": \"postgres\"\n  \"url\": \"postgres\"\n  \"user\": \"vivosport\"\" > /etc/grafana/provisioning/datasources/vivosport.yml\nexec /run.sh\n"
+            "printf \"\"apiVersion\": 1\n\"datasources\":\n- \"database\": \"vivosport\"\n  \"isDefault\": true\n  \"jsonData\":\n    \"sslmode\": \"disable\"\n  \"name\": \"vivosport\"\n  \"secureJsonData\":\n    \"password\": \"vivosport\"\n  \"type\": \"postgres\"\n  \"url\": \"postgres\"\n  \"user\": \"vivosport\"\" > /etc/grafana/provisioning/datasources/vivosport.yml\nexec /run.sh\n"
          ],
          "environment": [
             "GF_AUTH_ANONYMOUS_ENABLED=true",
