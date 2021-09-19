@@ -15,12 +15,13 @@ cmd/db/main.go: $(wildcard pgsql/*.go)
 	touch $@
 
 %/.linted: ## Lint source code.
-%/.linted: %/main.go
+%/.linted: %/main.go vendor
 	if golangci-lint run ./$<; then touch $@; fi
 
 vendor: ## Update vendored Go source code.
-vendor: go.mod go.sum
+vendor: 21.40.xlsx go.mod go.sum
 	go mod tidy && go mod vendor
+	fitgen -verbose -sdk 21.40 $< $@/github.com/tormoder/fit
 
 .built: ## Build binaries using Nix.
 .built: vendor default.nix flake.nix cmd/db/.linted cmd/files/.linted cmd/fit/.linted cmd/settings/.linted
