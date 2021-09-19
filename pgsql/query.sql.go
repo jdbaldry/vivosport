@@ -29,7 +29,7 @@ RETURNING id, start_ts, end_ts, total_timer_time, num_sessions, type, event, eve
 type CreateActivityParams struct {
 	StartTs        time.Time
 	EndTs          time.Time
-	TotalTimerTime sql.NullInt32
+	TotalTimerTime sql.NullFloat64
 	NumSessions    sql.NullInt32
 	Type           sql.NullInt32
 	Event          int16
@@ -66,6 +66,59 @@ func (q *Queries) CreateActivity(ctx context.Context, arg CreateActivityParams) 
 	return i, err
 }
 
+const createMonitoring = `-- name: CreateMonitoring :one
+INSERT INTO monitorings (
+  ts,
+  calories,
+  cycles,
+  distance,
+  active_time,
+  activity_type,
+  activity_sub_type,
+  local_ts
+)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+ON CONFLICT DO NOTHING
+RETURNING id, ts, cycles, calories, distance, active_time, activity_type, activity_sub_type, local_ts
+`
+
+type CreateMonitoringParams struct {
+	Ts              time.Time
+	Calories        int16
+	Cycles          sql.NullInt32
+	Distance        sql.NullFloat64
+	ActiveTime      sql.NullFloat64
+	ActivityType    int16
+	ActivitySubType int16
+	LocalTs         sql.NullTime
+}
+
+func (q *Queries) CreateMonitoring(ctx context.Context, arg CreateMonitoringParams) (Monitoring, error) {
+	row := q.db.QueryRowContext(ctx, createMonitoring,
+		arg.Ts,
+		arg.Calories,
+		arg.Cycles,
+		arg.Distance,
+		arg.ActiveTime,
+		arg.ActivityType,
+		arg.ActivitySubType,
+		arg.LocalTs,
+	)
+	var i Monitoring
+	err := row.Scan(
+		&i.ID,
+		&i.Ts,
+		&i.Cycles,
+		&i.Calories,
+		&i.Distance,
+		&i.ActiveTime,
+		&i.ActivityType,
+		&i.ActivitySubType,
+		&i.LocalTs,
+	)
+	return i, err
+}
+
 const createSession = `-- name: CreateSession :one
 INSERT INTO sessions (
     start_ts,
@@ -95,12 +148,12 @@ type CreateSessionParams struct {
 	EventType        int16
 	Sport            int16
 	SubSport         int16
-	TotalElapsedTime sql.NullInt32
-	TotalTimerTime   sql.NullInt32
-	TotalDistance    sql.NullInt32
+	TotalElapsedTime sql.NullFloat64
+	TotalTimerTime   sql.NullFloat64
+	TotalDistance    sql.NullFloat64
 	TotalCalories    int16
-	AvgSpeed         int16
-	MaxSpeed         int16
+	AvgSpeed         sql.NullFloat64
+	MaxSpeed         sql.NullFloat64
 	AvgHeartRate     int16
 	MaxHeartRate     int16
 }

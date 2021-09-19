@@ -11,13 +11,25 @@ type Activity struct {
 	ID             sql.NullInt64
 	StartTs        time.Time
 	EndTs          time.Time
-	TotalTimerTime sql.NullInt32
+	TotalTimerTime sql.NullFloat64
 	NumSessions    sql.NullInt32
 	Type           sql.NullInt32
 	Event          int16
 	EventType      int16
 	LocalTs        sql.NullTime
 	EventGroup     int16
+}
+
+type Monitoring struct {
+	ID              sql.NullInt64
+	Ts              time.Time
+	Cycles          sql.NullInt32
+	Calories        int16
+	Distance        sql.NullFloat64
+	ActiveTime      sql.NullFloat64
+	ActivityType    int16
+	ActivitySubType int16
+	LocalTs         sql.NullTime
 }
 
 type Session struct {
@@ -28,12 +40,12 @@ type Session struct {
 	EventType        int16
 	Sport            int16
 	SubSport         int16
-	TotalElapsedTime sql.NullInt32
-	TotalTimerTime   sql.NullInt32
-	TotalDistance    sql.NullInt32
+	TotalElapsedTime sql.NullFloat64
+	TotalTimerTime   sql.NullFloat64
+	TotalDistance    sql.NullFloat64
 	TotalCalories    int16
-	AvgSpeed         int16
-	MaxSpeed         int16
+	AvgSpeed         sql.NullFloat64
+	MaxSpeed         sql.NullFloat64
 	AvgHeartRate     int16
 	MaxHeartRate     int16
 }

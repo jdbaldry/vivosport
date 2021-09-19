@@ -34,3 +34,18 @@ INSERT INTO sessions (
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
 ON CONFLICT DO NOTHING
 RETURNING *;
+
+-- name: CreateMonitoring :one
+INSERT INTO monitorings (
+  ts,
+  calories,
+  cycles,
+  distance,
+  active_time,
+  activity_type,
+  activity_sub_type,
+  local_ts
+)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+ON CONFLICT DO NOTHING
+RETURNING *;
