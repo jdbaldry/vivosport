@@ -3,7 +3,10 @@ with pkgs;
 mkShell {
   buildInputs = [
     docker-compose
+    fitgen
     gnumake
+    postgresql
+    sqlc
   ] ++ [
     go-outline
     go-tools
@@ -12,8 +15,6 @@ mkShell {
     golangci-lint
     gopkgs
     gopls
-    postgresql
-    sqlc
   ];
   shellHook = ''
     export PATH="$PATH:$(pwd)/result/bin"
