@@ -32,6 +32,12 @@ type Monitoring struct {
 	LocalTs         sql.NullTime
 }
 
+type MonitoringsDaily struct {
+	Day          interface{}
+	Max          interface{}
+	ActivityType int16
+}
+
 type Record struct {
 	ID       int64
 	Distance sql.NullInt32

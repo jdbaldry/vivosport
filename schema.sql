@@ -47,6 +47,12 @@ CREATE TABLE monitorings (
   PRIMARY KEY (ts, activity_type, activity_sub_type)
 );
 
+CREATE OR REPLACE VIEW monitorings_daily AS
+SELECT date_trunc('day', ts) + interval '23 hours' AS day, MAX(m.cycles) AS cycles, MAX(m.distance) AS distance, activity_type
+FROM monitorings m
+WHERE activity_type = 6 OR activity_type = 1
+GROUP BY day, activity_type ORDER BY day;
+
 -- [[file:csv/RECORDS/RECORDS.md::Records][Records]]
 CREATE TABLE records (
   id bigserial PRIMARY KEY,
