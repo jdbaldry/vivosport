@@ -2,12 +2,18 @@
 with pkgs;
 mkShell {
   buildInputs = [
+    curl
     docker-compose
     fitgen
     libreoffice
     gnumake
+    go-jsonnet
+    mount
+    openjdk
     postgresql
+    rsync
     sqlc
+    unzip
   ] ++ [
     go-outline
     go-tools
