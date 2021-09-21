@@ -171,17 +171,17 @@ func main() {
 
 		b, err := ioutil.ReadFile(path)
 		if err != nil {
-			return fmt.Errorf("unable to read file: %w\n", err)
+			return fmt.Errorf("unable to read file %s: %w\n", path, err)
 		}
 
 		data, err := fit.Decode(bytes.NewReader(b))
 		if err != nil {
-			return fmt.Errorf("unable to decode FIT data: %w\n", err)
+			return fmt.Errorf("unable to decode FIT data in file %s: %w\n", path, err)
 		}
 
 		activityFile, err := data.Activity()
 		if err != nil {
-			return fmt.Errorf("FIT data was not an activity: %w\n", err)
+			return fmt.Errorf("FIT data in file %s was not an activity: %w\n", path, err)
 		}
 		activityCount++
 		_, err = queries.CreateActivity(ctx, pgsql.CreateActivityParams{
