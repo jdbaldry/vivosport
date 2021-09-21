@@ -20,32 +20,10 @@ type Activity struct {
 	EventGroup     int16
 }
 
-type Monitoring struct {
-	ID              sql.NullInt64
-	Ts              time.Time
-	Cycles          sql.NullInt32
-	Calories        int16
-	Distance        sql.NullFloat64
-	ActiveTime      sql.NullFloat64
-	ActivityType    int16
-	ActivitySubType int16
-	LocalTs         sql.NullTime
-}
-
-type MonitoringsDaily struct {
-	Day          interface{}
-	Max          interface{}
-	ActivityType int16
-}
-
-type Record struct {
-	ID       int64
-	Distance sql.NullInt32
-	Time     sql.NullInt32
-}
-
-type Session struct {
+type ActivityLap struct {
 	ID               sql.NullInt64
+	Activity         sql.NullInt64
+	MessageIndex     int16
 	StartTs          time.Time
 	EndTs            time.Time
 	Event            int16
@@ -60,4 +38,60 @@ type Session struct {
 	MaxSpeed         sql.NullFloat64
 	AvgHeartRate     int16
 	MaxHeartRate     int16
+}
+
+type ActivityRecord struct {
+	ID        sql.NullInt64
+	Activity  sql.NullInt64
+	Ts        time.Time
+	Altitude  int16
+	HeartRate int16
+	Cadence   int16
+	Distance  sql.NullFloat64
+	Speed     sql.NullFloat64
+	Cycles    int16
+}
+
+type ActivitySession struct {
+	ID               sql.NullInt64
+	Activity         sql.NullInt64
+	StartTs          time.Time
+	EndTs            time.Time
+	Event            int16
+	EventType        int16
+	Sport            int16
+	SubSport         int16
+	TotalElapsedTime sql.NullFloat64
+	TotalTimerTime   sql.NullFloat64
+	TotalDistance    sql.NullFloat64
+	TotalCalories    int16
+	AvgSpeed         sql.NullFloat64
+	MaxSpeed         sql.NullFloat64
+	AvgHeartRate     int16
+	MaxHeartRate     int16
+}
+
+type Monitoring struct {
+	ID              sql.NullInt64
+	Ts              time.Time
+	Cycles          sql.NullInt32
+	Calories        int16
+	Distance        sql.NullFloat64
+	ActiveTime      sql.NullFloat64
+	ActivityType    int16
+	ActivitySubType int16
+	LocalTs         sql.NullTime
+}
+
+type MonitoringsDaily struct {
+	Day          int32
+	Cycles       interface{}
+	Distance     interface{}
+	ActivityType int16
+}
+
+type Record struct {
+	ID       int64
+	Distance sql.NullInt32
+	Time     sql.NullInt32
 }

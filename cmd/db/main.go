@@ -40,8 +40,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	var activityCount, monitoringCount, recordCount, sessionCount int
-	var activityInserted, monitoringInserted, recordInserted, sessionInserted int
+	var activitiesCount, activityLapsCount, activityRecordsCount, activitySessionsCount, monitoringsCount, recordsCount int
+	var activitiesInserted, activityLapsInserted, activityRecordsInserted, activitySessionsInserted, monitoringsInserted, recordsInserted int
 
 	ctx := context.Background()
 
@@ -82,7 +82,7 @@ func main() {
 		if len(record) >= 17 {
 			// 7th field is distance. [[file:~/ext/jdbaldry/vivosport/csv/RECORDS/RECORDS.md::Records][Records]]
 			if record[7] == "100000" || record[7] == "160900" || record[7] == "500000" {
-				recordCount++
+				recordsCount++
 				distance, err := strconv.ParseInt(record[7], 10, 32)
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Unable to convert CSV distance field in record %d to int: %v", i, err)
@@ -105,7 +105,7 @@ func main() {
 						os.Exit(1)
 					}
 				}
-				recordInserted++
+				recordsInserted++
 			}
 		}
 	}
@@ -135,7 +135,7 @@ func main() {
 		}
 
 		for _, monitoring := range monitoringBFile.Monitorings {
-			monitoringCount++
+			monitoringsCount++
 			_, err := queries.CreateMonitoring(ctx, pgsql.CreateMonitoringParams{
 				Ts:              monitoring.Timestamp,
 				Calories:        int16(monitoring.Calories),
@@ -151,7 +151,7 @@ func main() {
 					return fmt.Errorf("failed to create monitoring: %w\n", err)
 				}
 			}
-			monitoringInserted++
+			monitoringsInserted++
 		}
 		return nil
 	})
@@ -183,8 +183,8 @@ func main() {
 		if err != nil {
 			return fmt.Errorf("FIT data in file %s was not an activity: %w\n", path, err)
 		}
-		activityCount++
-		_, err = queries.CreateActivity(ctx, pgsql.CreateActivityParams{
+		activitiesCount++
+		id, err := queries.CreateActivity(ctx, pgsql.CreateActivityParams{
 			StartTs:        activityFile.Activity.Timestamp.Add(-(time.Duration(activityFile.Activity.GetTotalTimerTimeScaled()) * time.Second)),
 			EndTs:          activityFile.Activity.Timestamp,
 			TotalTimerTime: sql.NullFloat64{Float64: activityFile.Activity.GetTotalTimerTimeScaled(), Valid: true},
@@ -200,11 +200,12 @@ func main() {
 				return fmt.Errorf("failed to create activity: %w\n", err)
 			}
 		}
-		activityInserted++
+		activitiesInserted++
 
 		for _, session := range activityFile.Sessions {
-			sessionCount++
-			_, err := queries.CreateSession(ctx, pgsql.CreateSessionParams{
+			activitySessionsCount++
+			_, err := queries.CreateActivitySession(ctx, pgsql.CreateActivitySessionParams{
+				Activity:         id,
 				StartTs:          session.StartTime,
 				EndTs:            session.Timestamp,
 				Event:            int16(session.Event),
@@ -225,7 +226,52 @@ func main() {
 					return fmt.Errorf("failed to create session: %w\n", err)
 				}
 			}
-			sessionInserted++
+			activitySessionsInserted++
+		}
+		for _, lap := range activityFile.Laps {
+			activityLapsCount++
+			_, err := queries.CreateActivityLap(ctx, pgsql.CreateActivityLapParams{
+				Activity:         id,
+				StartTs:          lap.StartTime,
+				EndTs:            lap.Timestamp,
+				Event:            int16(lap.Event),
+				EventType:        int16(lap.EventType),
+				Sport:            int16(lap.Sport),
+				SubSport:         int16(lap.SubSport),
+				TotalElapsedTime: sql.NullFloat64{Float64: lap.GetTotalElapsedTimeScaled(), Valid: true},
+				TotalTimerTime:   sql.NullFloat64{Float64: lap.GetTotalTimerTimeScaled(), Valid: true},
+				TotalDistance:    sql.NullFloat64{Float64: lap.GetTotalDistanceScaled(), Valid: true},
+				TotalCalories:    int16(lap.TotalCalories),
+				AvgSpeed:         sql.NullFloat64{Float64: lap.GetAvgSpeedScaled(), Valid: true},
+				MaxSpeed:         sql.NullFloat64{Float64: lap.GetMaxSpeedScaled(), Valid: true},
+				AvgHeartRate:     int16(lap.AvgHeartRate),
+				MaxHeartRate:     int16(lap.MaxHeartRate),
+			})
+			if err != nil {
+				if !errors.Is(err, sql.ErrNoRows) {
+					return fmt.Errorf("failed to create lap: %w\n", err)
+				}
+			}
+			activityLapsInserted++
+		}
+		for _, record := range activityFile.Records {
+			activityRecordsCount++
+			_, err := queries.CreateActivityRecord(ctx, pgsql.CreateActivityRecordParams{
+				Activity:  id,
+				Ts:        record.Timestamp,
+				Altitude:  int16(record.Altitude),
+				HeartRate: int16(record.HeartRate),
+				Cadence:   int16(record.Cadence),
+				Distance:  sql.NullFloat64{Float64: record.GetDistanceScaled(), Valid: true},
+				Speed:     sql.NullFloat64{Float64: record.GetSpeedScaled(), Valid: true},
+				Cycles:    int16(record.Cycles),
+			})
+			if err != nil {
+				if !errors.Is(err, sql.ErrNoRows) {
+					return fmt.Errorf("failed to create record: %w\n", err)
+				}
+			}
+			activityRecordsInserted++
 		}
 
 		return nil
@@ -235,9 +281,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("type\tcount\tinserted")
-	fmt.Printf("%s\t%d\t%d\n", "activity", activityCount, activityInserted)
-	fmt.Printf("%s\t%d\t%d\n", "monitoring", monitoringCount, monitoringInserted)
-	fmt.Printf("%s\t%d\t%d\n", "record", recordCount, recordInserted)
-	fmt.Printf("%s\t%d\t%d\n", "session", sessionCount, sessionInserted)
+	fmt.Println("monitoringsCount\tcount\tinserted")
+	fmt.Printf("%s\t%d\t%d\n", "activities", activitiesCount, activitiesInserted)
+	fmt.Printf("%s\t%d\t%d\n", "activity_laps", activityLapsCount, activityLapsInserted)
+	fmt.Printf("%s\t%d\t%d\n", "activity_records", activityRecordsCount, activityRecordsInserted)
+	fmt.Printf("%s\t%d\t%d\n", "activity_sessions", activitySessionsCount, activitySessionsInserted)
+	fmt.Printf("%s\t%d\t%d\n", "monitorings", monitoringsCount, monitoringsInserted)
+	fmt.Printf("%s\t%d\t%d\n", "records", recordsCount, recordsInserted)
 }

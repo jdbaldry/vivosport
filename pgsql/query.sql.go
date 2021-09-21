@@ -23,7 +23,7 @@ INSERT INTO activities (
 )
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 ON CONFLICT DO NOTHING
-RETURNING id, start_ts, end_ts, total_timer_time, num_sessions, type, event, event_type, local_ts, event_group
+RETURNING id
 `
 
 type CreateActivityParams struct {
@@ -38,7 +38,7 @@ type CreateActivityParams struct {
 	EventGroup     int16
 }
 
-func (q *Queries) CreateActivity(ctx context.Context, arg CreateActivityParams) (Activity, error) {
+func (q *Queries) CreateActivity(ctx context.Context, arg CreateActivityParams) (sql.NullInt64, error) {
 	row := q.db.QueryRowContext(ctx, createActivity,
 		arg.StartTs,
 		arg.EndTs,
@@ -50,96 +50,15 @@ func (q *Queries) CreateActivity(ctx context.Context, arg CreateActivityParams) 
 		arg.LocalTs,
 		arg.EventGroup,
 	)
-	var i Activity
-	err := row.Scan(
-		&i.ID,
-		&i.StartTs,
-		&i.EndTs,
-		&i.TotalTimerTime,
-		&i.NumSessions,
-		&i.Type,
-		&i.Event,
-		&i.EventType,
-		&i.LocalTs,
-		&i.EventGroup,
-	)
-	return i, err
+	var id sql.NullInt64
+	err := row.Scan(&id)
+	return id, err
 }
 
-const createMonitoring = `-- name: CreateMonitoring :one
-INSERT INTO monitorings (
-  ts,
-  calories,
-  cycles,
-  distance,
-  active_time,
-  activity_type,
-  activity_sub_type,
-  local_ts
-)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-ON CONFLICT DO NOTHING
-RETURNING id, ts, cycles, calories, distance, active_time, activity_type, activity_sub_type, local_ts
-`
-
-type CreateMonitoringParams struct {
-	Ts              time.Time
-	Calories        int16
-	Cycles          sql.NullInt32
-	Distance        sql.NullFloat64
-	ActiveTime      sql.NullFloat64
-	ActivityType    int16
-	ActivitySubType int16
-	LocalTs         sql.NullTime
-}
-
-func (q *Queries) CreateMonitoring(ctx context.Context, arg CreateMonitoringParams) (Monitoring, error) {
-	row := q.db.QueryRowContext(ctx, createMonitoring,
-		arg.Ts,
-		arg.Calories,
-		arg.Cycles,
-		arg.Distance,
-		arg.ActiveTime,
-		arg.ActivityType,
-		arg.ActivitySubType,
-		arg.LocalTs,
-	)
-	var i Monitoring
-	err := row.Scan(
-		&i.ID,
-		&i.Ts,
-		&i.Cycles,
-		&i.Calories,
-		&i.Distance,
-		&i.ActiveTime,
-		&i.ActivityType,
-		&i.ActivitySubType,
-		&i.LocalTs,
-	)
-	return i, err
-}
-
-const createRecord = `-- name: CreateRecord :one
-INSERT INTO records (distance, time)
-VALUES ($1, $2)
-ON CONFLICT DO NOTHING
-RETURNING id, distance, time
-`
-
-type CreateRecordParams struct {
-	Distance sql.NullInt32
-	Time     sql.NullInt32
-}
-
-func (q *Queries) CreateRecord(ctx context.Context, arg CreateRecordParams) (Record, error) {
-	row := q.db.QueryRowContext(ctx, createRecord, arg.Distance, arg.Time)
-	var i Record
-	err := row.Scan(&i.ID, &i.Distance, &i.Time)
-	return i, err
-}
-
-const createSession = `-- name: CreateSession :one
-INSERT INTO sessions (
+const createActivityLap = `-- name: CreateActivityLap :one
+INSERT INTO activity_laps (
+    activity,
+    message_index,
     start_ts,
     end_ts,
     event,
@@ -155,12 +74,14 @@ INSERT INTO sessions (
     avg_heart_rate,
     max_heart_rate
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
 ON CONFLICT DO NOTHING
-RETURNING id, start_ts, end_ts, event, event_type, sport, sub_sport, total_elapsed_time, total_timer_time, total_distance, total_calories, avg_speed, max_speed, avg_heart_rate, max_heart_rate
+RETURNING id
 `
 
-type CreateSessionParams struct {
+type CreateActivityLapParams struct {
+	Activity         sql.NullInt64
+	MessageIndex     int16
 	StartTs          time.Time
 	EndTs            time.Time
 	Event            int16
@@ -177,8 +98,10 @@ type CreateSessionParams struct {
 	MaxHeartRate     int16
 }
 
-func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error) {
-	row := q.db.QueryRowContext(ctx, createSession,
+func (q *Queries) CreateActivityLap(ctx context.Context, arg CreateActivityLapParams) (sql.NullInt64, error) {
+	row := q.db.QueryRowContext(ctx, createActivityLap,
+		arg.Activity,
+		arg.MessageIndex,
 		arg.StartTs,
 		arg.EndTs,
 		arg.Event,
@@ -194,23 +117,176 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (S
 		arg.AvgHeartRate,
 		arg.MaxHeartRate,
 	)
-	var i Session
-	err := row.Scan(
-		&i.ID,
-		&i.StartTs,
-		&i.EndTs,
-		&i.Event,
-		&i.EventType,
-		&i.Sport,
-		&i.SubSport,
-		&i.TotalElapsedTime,
-		&i.TotalTimerTime,
-		&i.TotalDistance,
-		&i.TotalCalories,
-		&i.AvgSpeed,
-		&i.MaxSpeed,
-		&i.AvgHeartRate,
-		&i.MaxHeartRate,
+	var id sql.NullInt64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const createActivityRecord = `-- name: CreateActivityRecord :one
+INSERT INTO activity_records (
+    activity,
+    ts,
+    altitude,
+    heart_rate,
+    cadence,
+    distance,
+    speed,
+    cycles
+)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+ON CONFLICT DO NOTHING
+RETURNING id
+`
+
+type CreateActivityRecordParams struct {
+	Activity  sql.NullInt64
+	Ts        time.Time
+	Altitude  int16
+	HeartRate int16
+	Cadence   int16
+	Distance  sql.NullFloat64
+	Speed     sql.NullFloat64
+	Cycles    int16
+}
+
+func (q *Queries) CreateActivityRecord(ctx context.Context, arg CreateActivityRecordParams) (sql.NullInt64, error) {
+	row := q.db.QueryRowContext(ctx, createActivityRecord,
+		arg.Activity,
+		arg.Ts,
+		arg.Altitude,
+		arg.HeartRate,
+		arg.Cadence,
+		arg.Distance,
+		arg.Speed,
+		arg.Cycles,
 	)
-	return i, err
+	var id sql.NullInt64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const createActivitySession = `-- name: CreateActivitySession :one
+INSERT INTO activity_sessions (
+    activity,
+    start_ts,
+    end_ts,
+    event,
+    event_type,
+    sport,
+    sub_sport,
+    total_elapsed_time,
+    total_timer_time,
+    total_distance,
+    total_calories,
+    avg_speed,
+    max_speed,
+    avg_heart_rate,
+    max_heart_rate
+)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+ON CONFLICT DO NOTHING
+RETURNING id
+`
+
+type CreateActivitySessionParams struct {
+	Activity         sql.NullInt64
+	StartTs          time.Time
+	EndTs            time.Time
+	Event            int16
+	EventType        int16
+	Sport            int16
+	SubSport         int16
+	TotalElapsedTime sql.NullFloat64
+	TotalTimerTime   sql.NullFloat64
+	TotalDistance    sql.NullFloat64
+	TotalCalories    int16
+	AvgSpeed         sql.NullFloat64
+	MaxSpeed         sql.NullFloat64
+	AvgHeartRate     int16
+	MaxHeartRate     int16
+}
+
+func (q *Queries) CreateActivitySession(ctx context.Context, arg CreateActivitySessionParams) (sql.NullInt64, error) {
+	row := q.db.QueryRowContext(ctx, createActivitySession,
+		arg.Activity,
+		arg.StartTs,
+		arg.EndTs,
+		arg.Event,
+		arg.EventType,
+		arg.Sport,
+		arg.SubSport,
+		arg.TotalElapsedTime,
+		arg.TotalTimerTime,
+		arg.TotalDistance,
+		arg.TotalCalories,
+		arg.AvgSpeed,
+		arg.MaxSpeed,
+		arg.AvgHeartRate,
+		arg.MaxHeartRate,
+	)
+	var id sql.NullInt64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const createMonitoring = `-- name: CreateMonitoring :one
+INSERT INTO monitorings (
+  ts,
+  calories,
+  cycles,
+  distance,
+  active_time,
+  activity_type,
+  activity_sub_type,
+  local_ts
+)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+ON CONFLICT DO NOTHING
+RETURNING id
+`
+
+type CreateMonitoringParams struct {
+	Ts              time.Time
+	Calories        int16
+	Cycles          sql.NullInt32
+	Distance        sql.NullFloat64
+	ActiveTime      sql.NullFloat64
+	ActivityType    int16
+	ActivitySubType int16
+	LocalTs         sql.NullTime
+}
+
+func (q *Queries) CreateMonitoring(ctx context.Context, arg CreateMonitoringParams) (sql.NullInt64, error) {
+	row := q.db.QueryRowContext(ctx, createMonitoring,
+		arg.Ts,
+		arg.Calories,
+		arg.Cycles,
+		arg.Distance,
+		arg.ActiveTime,
+		arg.ActivityType,
+		arg.ActivitySubType,
+		arg.LocalTs,
+	)
+	var id sql.NullInt64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const createRecord = `-- name: CreateRecord :one
+INSERT INTO records (distance, time)
+VALUES ($1, $2)
+ON CONFLICT DO NOTHING
+RETURNING id
+`
+
+type CreateRecordParams struct {
+	Distance sql.NullInt32
+	Time     sql.NullInt32
+}
+
+func (q *Queries) CreateRecord(ctx context.Context, arg CreateRecordParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, createRecord, arg.Distance, arg.Time)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
 }
